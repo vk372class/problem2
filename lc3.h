@@ -31,16 +31,16 @@
 typedef unsigned short Register;
 
 typedef struct ALU_s {
-    Register A;
-    Register B;
-    Register R;
+    signed short A;
+    signed short B;
+    signed short R;
 } ALU_s;
 
 typedef ALU_s *ALU_p;
 
 typedef struct CPU_s {
 
-    unsigned int regFile[8];
+    signed int regFile[8];
     int n, z, p;
     Register IR;
     Register PC;

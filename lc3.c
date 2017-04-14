@@ -52,7 +52,22 @@ int controller (CPU_p cpu) {
             case EVAL_ADDR: // Look at the LD instruction to see microstate 2 example
                 switch (opcode) {
                     case ADD:
-                            break;
+                          break;
+                    case AND:
+                          break;
+                    case NOT:
+                          break;
+                    case TRAP:
+                          break;
+                    case LD:
+                          break;
+                    case ST:
+                          break;
+                    case JMP:
+                          break;
+                    case BR:
+                          break;
+                    
                        
                      
                 // different opcodes require different handling
@@ -66,6 +81,23 @@ int controller (CPU_p cpu) {
                             alu->A = cpu->regFile[Rs1];
                             alu->B = cpu->regFile[Rs2];
                             break;
+                    case AND:
+                          alu->A = cpu->regFile[Rs1];
+                            alu->B = cpu->regFile[Rs2];
+                            break;
+                    case NOT:
+                          alu->A = cpu->regFile[Rs1];
+                          break;
+                    case TRAP:
+                          break;
+                    case LD:
+                          break;
+                    case ST:
+                          break;
+                    case JMP:
+                          break;
+                    case BR:
+                          break;
                     // get operands out of registers into A, B of ALU
                     // or get memory for load instr.
                 }
@@ -75,8 +107,24 @@ int controller (CPU_p cpu) {
                 switch (opcode) {
                     // do what the opcode is for, e.g. ADD
                     case ADD:
-                            alu->R = alu->A + alu->B;
-                            break;
+                          alu->R = alu->A + alu->B;
+                          break;
+                    case AND:
+                          alu->R = alu->A & alu->B;
+                          break;
+                    case NOT:
+                          alu->R = ~alu->A;
+                          break;
+                    case TRAP:
+                          break;
+                    case LD:
+                          break;
+                    case ST:
+                          break;
+                    case JMP:
+                          break;
+                    case BR:
+                          break;
                     // in case of TRAP: call trap(int trap_vector) routine, see below for TRAP x25 (HALT)
                 }
                 state = STORE;
@@ -86,6 +134,22 @@ int controller (CPU_p cpu) {
                     case ADD:
                             cpu->regFile[Rd] = alu->R;
                             break;
+                    case AND:
+                          cpu->regFile[Rd] = alu->R;
+                          break;
+                    case NOT:
+                          cpu->regFile[Rd] = alu->R;
+                          break;
+                    case TRAP:
+                          break;
+                    case LD:
+                          break;
+                    case ST:
+                          break;
+                    case JMP:
+                          break;
+                    case BR:
+                          break;
                     // write back to register or store MDR into memory
                 }
 printf("RESULT: %d", cpu->regFile[Rd]);
@@ -104,7 +168,7 @@ int main(int argc, char* argv[]) {
     CPU_p cpu_pointer = malloc(sizeof(struct CPU_s));
     cpu_pointer->PC = 0;
     cpu_pointer->regFile[1] = 1;
-    cpu_pointer->regFile[2] = 5;
+    cpu_pointer->regFile[2] = -5;
     memory[0] = 0x1642;
     controller(cpu_pointer);
 }
