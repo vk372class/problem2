@@ -78,12 +78,25 @@ int controller (CPU_p cpu) {
             case FETCH_OP: // Look at ST. Microstate 23 example of getting a value out of a register
                 switch (opcode) {
                     case ADD:
-                            alu->A = cpu->regFile[Rs1];
+                        alu->A = cpu->regFile[Rs1];
+                        if ((cpu->IR & 0x20) == 0) {
                             alu->B = cpu->regFile[Rs2];
+                        } else {
+                          alu->B = cpu->IR & 0x1F; //get immed5.
+                          if (alu->B & 0x10 != 0) { //if first bit of immed5 = 1
+                            alu->B = (alu->B | 0xFFE0);
+                          }
+                        }
                             break;
                     case AND:
                           alu->A = cpu->regFile[Rs1];
+                        if ((cpu->IR & 0x20) == 0) {
+                            printf("here!\n");
                             alu->B = cpu->regFile[Rs2];
+                        } else {
+                          alu->B = cpu->IR & 0x1F; //get immed5.
+                          printf("\nalub: %d", alu->B);
+                        } 
                             break;
                     case NOT:
                           alu->A = cpu->regFile[Rs1];
@@ -111,9 +124,10 @@ int controller (CPU_p cpu) {
                           break;
                     case AND:
                           alu->R = alu->A & alu->B;
+                          printf("\na: %d, \nb: %d\n", alu->A, alu->B);                          
                           break;
                     case NOT:
-                          alu->R = ~alu->A;
+                          alu->R = ~(alu->A);
                           break;
                     case TRAP:
                           break;
@@ -152,7 +166,7 @@ int controller (CPU_p cpu) {
                           break;
                     // write back to register or store MDR into memory
                 }
-printf("RESULT: %d", cpu->regFile[Rd]);
+printf("\nRESULT: %d", cpu->regFile[Rd]);
 exit(0);
                 // do any clean up here in prep for the next complete cycle
                 state = FETCH;
@@ -167,8 +181,11 @@ exit(0);
 int main(int argc, char* argv[]) {
     CPU_p cpu_pointer = malloc(sizeof(struct CPU_s));
     cpu_pointer->PC = 0;
-    cpu_pointer->regFile[1] = 1;
-    cpu_pointer->regFile[2] = -5;
-    memory[0] = 0x1642;
+    cpu_pointer->regFile[1] = 3;
+    cpu_pointer->regFile[2] = 5;
+    //memory[0] = 0x167D; //ADD R3 R1 #-3
+    //memory[0] = 0x967F; //NOT R3 R1
+    //memory[0] = 0x5642; //AND R3 R1 R2
+    memory[0] = 0x5679;
     controller(cpu_pointer);
 }
