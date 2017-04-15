@@ -1,32 +1,15 @@
-#ifndef LC3_H
-#define LC3_H
+#
+ifndef LC3_H# define LC3_H
 
-#include <stdio.h>
-#include <stdlib.h>
+# include < stdio.h > #include < stdlib.h >
 
-#define FETCH 0
-#define DECODE 1
-#define EVAL_ADDR 2
-#define FETCH_OP 3
-#define EXECUTE 4
-#define STORE 5
+    #define FETCH 0# define DECODE 1# define EVAL_ADDR 2# define FETCH_OP 3# define EXECUTE 4# define STORE 5
 
-#define ADD 1
+# define ADD 1# define AND 5# define NOT 9# define TRAP 15# define LD 2# define ST 3# define JMP 12# define BR 0
 
-#define AND 5
-
-#define NOT 9
-
-#define TRAP 15
-
-#define LD 2
-
-#define ST 3
-
-#define JMP 12
-
-#define BR 0
-
+# define N 4 //100
+# define Z 2 //010
+# define P 1 //001
 
 typedef unsigned short Register;
 
@@ -34,9 +17,10 @@ typedef struct ALU_s {
     signed short A;
     signed short B;
     signed short R;
-} ALU_s;
+}
+ALU_s;
 
-typedef ALU_s *ALU_p;
+typedef ALU_s * ALU_p;
 
 typedef struct CPU_s {
 
@@ -46,11 +30,12 @@ typedef struct CPU_s {
     Register PC;
     Register MAR;
     Register MDR;
- 
-} CPU_s;
+    Register CC;
 
+}
+CPU_s;
 
+typedef struct CPU_s * CPU_p;
 
-typedef struct CPU_s *CPU_p;
-
-#endif
+#
+endif
