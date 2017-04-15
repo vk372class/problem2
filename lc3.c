@@ -58,11 +58,16 @@ int controller (CPU_p cpu) {
                     case NOT:
                           break;
                     case TRAP:
+                            cpu->MAR = cpu->IR & 0x00FF;
                           break;
                     case LD:
-                          break;
                     case ST:
-                          break;
+                            cpu->IR = 0x01FF & cpu->IR;  
+                            if(cpu->IR & 0x0100) {
+                                cpu->IR = cpu->IR | 0xFE00;
+                            }
+                            cpu->MAR = cpu->PC + cpu->IR;
+                            break;
                     case JMP:
                           break;
                     case BR:
@@ -104,8 +109,10 @@ int controller (CPU_p cpu) {
                     case TRAP:
                           break;
                     case LD:
+                            cpu->MDR = memory[cpu->MAR];
                           break;
                     case ST:
+                            cpu->MDR = Rd;
                           break;
                     case JMP:
                           break;
@@ -136,6 +143,7 @@ int controller (CPU_p cpu) {
                     case ST:
                           break;
                     case JMP:
+                            cpu->PC = cpu->regFile[Rs1];
                           break;
                     case BR:
                           break;
@@ -156,9 +164,11 @@ int controller (CPU_p cpu) {
                           break;
                     case TRAP:
                           break;
-                    case LD:
+                     case LD:
+                            cpu->regFile[Rd] = cpu->MDR;
                           break;
                     case ST:
+                            memory[cpu->MAR] = cpu->MDR;
                           break;
                     case JMP:
                           break;
