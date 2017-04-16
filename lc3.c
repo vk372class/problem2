@@ -121,7 +121,7 @@ int controller(CPU_p cpu) {
                             alu->B = cpu->regFile[Rs2];
                         } else {
                             alu->B = cpu->IR & 0x1F; //get immed5.
-                            if (alu->B & 0x10 != 0) { //if first bit of immed5 = 1
+                            if ((alu->B & 0x10) != 0) { //if first bit of immed5 = 1
                                 alu->B = (alu->B | 0xFFE0);
                             }
                         }
@@ -223,7 +223,7 @@ int main(int argc, char * argv[]) {
     CPU_p cpu_pointer = malloc(sizeof(struct CPU_s));
     cpu_pointer->PC = 0;
     cpu_pointer->CC = Z; //initialize condition codes to zero.
-    cpu_pointer->regFile[0] = 0x15;    
+    cpu_pointer->regFile[0] = 0x1E;    
     cpu_pointer->regFile[1] = 0x5;
     cpu_pointer->regFile[2] = 0xF;
     cpu_pointer->regFile[3] = 0;
@@ -233,8 +233,10 @@ int main(int argc, char * argv[]) {
     memory[1] = HALT; //TRAP #25
     memory[5] = 0xA0A0; //"You will need to put a value in location 4 - say 0xA0A0"
     memory[6] = HALT; //TRAP #25
-    memory[21] = 0x1642; //ADD R3 R1 R2
+    memory[21] = 0x16A6; //ADD R3 R2 #6
     memory[22] = HALT; //TRAP #25
+    memory[30] = 0x1672; //ADD R3 R1 #-14
+    memory[31] = HALT; //TRAP #25
     controller(cpu_pointer);
     
     printf("\n===========HALTED==============\n");
