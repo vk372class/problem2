@@ -38,7 +38,6 @@ int controller(CPU_p cpu) {
       return -1;
     }
     // do any initializations here
-    ALU_p alu = malloc(sizeof(struct ALU_s));
     unsigned short opcode, Rd, Rs1, Rs2, immed_offset, nzp, BEN, pcOffset9, trapVector; // fields for the IR
     int state = FETCH;
     for (;;) { // efficient endless loop
@@ -116,18 +115,18 @@ int controller(CPU_p cpu) {
                 switch (opcode) {
                     case ADD:
                     case AND:
-                        alu->A = cpu->regFile[Rs1];
+                        cpu->ALU_A = cpu->regFile[Rs1];
                         if ((cpu->IR & 0x20) == 0) {
-                            alu->B = cpu->regFile[Rs2];
+                            cpu->ALU_B = cpu->regFile[Rs2];
                         } else {
-                            alu->B = cpu->IR & 0x1F; //get immed5.
-                            if ((alu->B & 0x10) != 0) { //if first bit of immed5 = 1
-                                alu->B = (alu->B | 0xFFE0);
+                            cpu->ALU_B = cpu->IR & 0x1F; //get immed5.
+                            if ((cpu->ALU_B & 0x10) != 0) { //if first bit of immed5 = 1
+                                cpu->ALU_B = (cpu->ALU_B | 0xFFE0);
                             }
                         }
                         break;
                     case NOT:
-                        alu->A = cpu->regFile[Rs1];
+                        cpu->ALU_A = cpu->regFile[Rs1];
                         break;
                     case LD:
                         cpu->MDR = memory[cpu->MAR];
@@ -153,16 +152,16 @@ int controller(CPU_p cpu) {
                 switch (opcode) {
                     // do what the opcode is for, e.g. ADD
                     case ADD:
-                        alu->R = alu->A + alu->B;
-                        setCC(alu->R, cpu);
+                        cpu->ALU_R = cpu->ALU_A + cpu->ALU_B;
+                        setCC(cpu->ALU_R, cpu);
                         break;
                     case AND:
-                        alu->R = alu->A & alu->B;
-                        setCC(alu->R, cpu);
+                        cpu->ALU_R = cpu->ALU_A & cpu->ALU_B;
+                        setCC(cpu->ALU_R, cpu);
                         break;
                     case NOT:
-                        alu->R = ~(alu->A);
-                        setCC(alu->R, cpu);
+                        cpu->ALU_R = ~(cpu->ALU_A);
+                        setCC(cpu->ALU_R, cpu);
                         break;
                     case TRAP:
                         trapVector = pcOffset9 & 0xFF;
@@ -186,13 +185,13 @@ int controller(CPU_p cpu) {
             case STORE: // Look at ST. Microstate 16 is the store to memory
                 switch (opcode) {
                     case ADD:
-                        cpu->regFile[Rd] = alu->R;
+                        cpu->regFile[Rd] = cpu->ALU_R;
                         break;
                     case AND:
-                        cpu->regFile[Rd] = alu->R;
+                        cpu->regFile[Rd] = cpu->ALU_R;
                         break;
                     case NOT:
-                        cpu->regFile[Rd] = alu->R;
+                        cpu->regFile[Rd] = cpu->ALU_R;
                         break;
                     case LD:
                         cpu->regFile[Rd] = cpu->MDR;
@@ -232,7 +231,6 @@ int main(int argc, char * argv[]) {
     memory[0] = strtol(argv[1], &temp, 16);
     memory[1] = HALT; //TRAP #25
     memory[5] = 0xA0A0; //"You will need to put a value in location 4 - say 0xA0A0"
-    memory[6] = HALT; //TRAP #25
     memory[21] = 0x16A6; //ADD R3 R2 #6
     memory[22] = HALT; //TRAP #25
     memory[30] = 0x1672; //ADD R3 R1 #-14

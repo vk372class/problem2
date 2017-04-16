@@ -28,15 +28,6 @@
 
 #define HALT 0xF019
 
-typedef struct ALU_s {
-    signed short A;
-    signed short B;
-    signed short R;
-}
-ALU_s;
-
-typedef ALU_s * ALU_p;
-
 typedef struct CPU_s {
 
     signed int regFile[8];
@@ -46,7 +37,10 @@ typedef struct CPU_s {
     unsigned short MAR;
     signed short MDR;
     unsigned short CC;
-
+    signed short ALU_A;
+    signed short ALU_B;
+    signed short ALU_R;
+        
 }
 CPU_s;
 
