@@ -6,6 +6,7 @@
 // you can define a simple memory module here for this program
 unsigned short memory[32]; // 32 words of memory enough to store simple program
 
+//Sets the condition codes, given a result.
 void setCC(unsigned short result, CPU_p cpu) {
     if (result < 0) { //Negative result
         cpu->CC = N;
@@ -16,6 +17,7 @@ void setCC(unsigned short result, CPU_p cpu) {
     }
 }
 
+//Prints out the register values, the IR, PC, MAR, and MDR.
 void printCurrentState(CPU_p cpu) {
   int i;
   int numOfRegisters = sizeof(cpu->regFile)/sizeof(cpu->regFile[0]);
@@ -26,6 +28,7 @@ void printCurrentState(CPU_p cpu) {
   printf("\nIR: %d\nPC: %d\nMAR: %d\nMDR: %d", cpu->IR, cpu->PC, cpu->MAR, cpu->MDR);
 }
 
+//Function to handle TRAP routines.
 int trap(int trap_vector) {
     switch(trap_vector) {
         case 25: //HALT
@@ -33,12 +36,13 @@ int trap(int trap_vector) {
     }
 }
 
+//Executes instructions on our simulated CPU.
 int controller(CPU_p cpu) {
     if (cpu == NULL) {
       return -1;
     }
-    // do any initializations here
-    unsigned short opcode, Rd, Rs1, Rs2, immed_offset, nzp, BEN, pcOffset9, trapVector; // fields for the IR
+    
+    unsigned short opcode, Rd, Rs1, Rs2, immed_offset, nzp, BEN, pcOffset9; // fields for the IR
     int state = FETCH;
     for (;;) { // efficient endless loop
         switch (state) {
@@ -68,6 +72,9 @@ int controller(CPU_p cpu) {
                 Rs2 = cpu->IR & 0x0007;
                 BEN = cpu->CC & nzp; //current cc & instruction's nzp
                 pcOffset9 = 0x01FF & cpu->IR;
+                if (pcOffset9 & 0x0100) {
+                    pcOffset9 = pcOffset9 | 0xFE00;
+                }
     
                 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
                 #if DEBUG == 1
@@ -78,23 +85,17 @@ int controller(CPU_p cpu) {
                 
                 state = EVAL_ADDR;
                 break;
-            case EVAL_ADDR: // Look at the LD instruction to see microstate 2 example
+            case EVAL_ADDR:
                 switch (opcode) {
                     case TRAP:
-                        cpu->MAR = cpu->IR & 0x00FF;
+                        cpu->MAR = cpu->IR & 0x00FF; //get the trapvector8
                         break;
                     case LD:
                     case ST:
-                        if (pcOffset9 & 0x0100) {
-                            pcOffset9 = pcOffset9 | 0xFE00;
-                        }
                         cpu->MAR = cpu->PC + pcOffset9;
                         break;
                     case BR:
                         if (BEN) {
-                            if (pcOffset9 & 0x0100) {
-                                pcOffset9 = pcOffset9 | 0xFE00;
-                            }
                             cpu->PC = cpu->PC + pcOffset9;
                         }
                         break;
@@ -111,7 +112,7 @@ int controller(CPU_p cpu) {
                 
                 state = FETCH_OP;
                 break;
-            case FETCH_OP: // Look at ST. Microstate 23 example of getting a value out of a register
+            case FETCH_OP:
                 switch (opcode) {
                     case ADD:
                     case AND:
@@ -136,8 +137,6 @@ int controller(CPU_p cpu) {
                         break;
                     default:
                         break;
-                        // get operands out of registers into A, B of ALU
-                        // or get memory for load instr.
                     }
                 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
                 #if DEBUG == 1
@@ -148,9 +147,8 @@ int controller(CPU_p cpu) {
                 
                 state = EXECUTE;
                 break;
-            case EXECUTE: // Note that ST does not have an execute microstate
+            case EXECUTE:
                 switch (opcode) {
-                    // do what the opcode is for, e.g. ADD
                     case ADD:
                         cpu->ALU_R = cpu->ALU_A + cpu->ALU_B;
                         setCC(cpu->ALU_R, cpu);
@@ -164,8 +162,7 @@ int controller(CPU_p cpu) {
                         setCC(cpu->ALU_R, cpu);
                         break;
                     case TRAP:
-                        trapVector = pcOffset9 & 0xFF;
-                        return trap(trapVector);
+                        return trap(cpu->MAR);
                         break;
                     case JMP:
                         cpu->PC = cpu->regFile[Rs1];
@@ -182,7 +179,7 @@ int controller(CPU_p cpu) {
                 
                 state = STORE;
                 break;
-            case STORE: // Look at ST. Microstate 16 is the store to memory
+            case STORE:
                 switch (opcode) {
                     case ADD:
                         cpu->regFile[Rd] = cpu->ALU_R;
@@ -203,7 +200,7 @@ int controller(CPU_p cpu) {
                     default:
                         break;
                 }
-                // do any clean up here in prep for the next complete cycle
+                
                 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
                 #if DEBUG == 1
                 printf("\n===========STORE==============\n");
@@ -218,10 +215,11 @@ int controller(CPU_p cpu) {
 
 }
 
+//Initializes the CPU and sets it into action.
 int main(int argc, char * argv[]) {
     CPU_p cpu_pointer = malloc(sizeof(struct CPU_s));
     cpu_pointer->PC = 0;
-    cpu_pointer->CC = Z; //initialize condition codes to zero.
+    cpu_pointer->CC = Z; //initialize condition code to zero.
     cpu_pointer->regFile[0] = 0x1E;    
     cpu_pointer->regFile[1] = 0x5;
     cpu_pointer->regFile[2] = 0xF;
@@ -239,6 +237,7 @@ int main(int argc, char * argv[]) {
     
     printf("\n===========HALTED==============\n");
     printCurrentState(cpu_pointer);
+    printf("\n");
     
     /**
     ADD R3 R1 R2       0x1642
@@ -251,4 +250,6 @@ int main(int argc, char * argv[]) {
     JMP R0             0xC000
     BRnzp #20          0x0E14
     */
+    
+    return 0;
 }
